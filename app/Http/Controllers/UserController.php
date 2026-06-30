@@ -30,6 +30,12 @@ class UserController extends Controller
                 page:    $data['page']     ?? null,
             );
 
-        return response()->json($users);
+        $model = [
+            'status'  => 200,
+            'message' => count($users) > 0 ? 'Registros encontrados.' : 'Nenhum registro encontrado.',
+            'data'    => $users,
+        ];
+
+        return response()->json($model);
     }
 }
