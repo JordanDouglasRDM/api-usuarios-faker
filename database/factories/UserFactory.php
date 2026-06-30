@@ -26,23 +26,32 @@ class UserFactory extends Factory
     {
         $firstName = fake()->firstName();
         $lastName = fake()->lastName();
-
         $safeEmail = fake()->unique()->safeEmail();
         $exploded = explode('@', $safeEmail);
-        $safeEmail = Str::random(5). '_' . $exploded[0] . '@' . $exploded[1];
+        $safeEmail = Str::random(5) . '_' . $exploded[0] . '@' . $exploded[1];
+
         return [
-            'first_name'        => $firstName,
-            'last_name'         => $lastName,
-            'username'          => fake()->unique()->userName(),
-            'phone_number'      => fake()->phoneNumber(),
-            'profile_picture'   => fake()->randomElement($this->getImages()),
-            'birthday_date'     => fake()->date('Y-m-d', '-18 years'),
-            'gender'            => fake()->randomElement(['Male', 'Female', 'Other']),
-            'country'           => fake()->country(),
-            'city'              => fake()->city(),
-            'email'             => $safeEmail,
-            'password'          => static::$password ??= Hash::make('password'),
+            'first_name'      => $firstName,
+            'last_name'       => $lastName,
+            'username'        => Str::random(10),
+            'phone_number'    => fake()->phoneNumber(),
+            'profile_picture' => fake()->randomElement($this->getImages()),
+            'birthday_date'   => fake()->date('Y-m-d', '-18 years'),
+            'gender'          => fake()->randomElement(['Male', 'Female', 'Other']),
+            'country'         => fake()->country(),
+            'city'            => fake()->city(),
+            'email'           => $safeEmail,
+            'password'        => static::$password ??= Hash::make('password'),
         ];
+    }
+
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->update([
+                'username' => Str::slug($user->first_name . ' ' . $user->last_name . $user->id),
+            ]);
+        });
     }
 
     public function getImages(): array

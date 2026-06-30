@@ -14,10 +14,7 @@ class GetAllUserRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $tokenApp = config('services.authentication.token');
-        return $this->route('token') == $tokenApp;
-
-//        return true;
+        return true;
     }
 
     /**
@@ -31,9 +28,8 @@ class GetAllUserRequest extends FormRequest
             'q'               => 'sometimes|string|min:1|max:100',
             'order_by'        => 'sometimes|string|in:first_name,last_name,username,email,country,city,created_at',
             'order_direction' => 'sometimes|string|in:asc,desc',
-            'per_page'        => 'sometimes|integer|min:1|max:100',
+            'per_page'        => 'sometimes|integer|min:1|max:500',
             'page'            => 'sometimes|integer|min:1',
-            'token'            => 'required|string|min:1|max:200',
         ];
     }
 
