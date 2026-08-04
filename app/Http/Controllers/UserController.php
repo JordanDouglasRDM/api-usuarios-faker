@@ -4,38 +4,56 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\User\GetAllUserRequest;
 use App\Models\User;
+use Illuminate\Http\Client\HttpClientException;
 
 class UserController extends Controller
 {
     public function index(GetAllUserRequest $request)
     {
-        $data = $request->validated();
+        try {
+            $data = $request->validated();
 
-        $users = User::query()
-            ->when(isset($data['q']), function ($query) use ($data) {
-                $term = '%' . $data['q'] . '%';
-                $query->where(function ($q) use ($term) {
-                    $q->where('first_name',   'like', $term)
-                      ->orWhere('last_name',    'like', $term)
-                      ->orWhere('username',     'like', $term)
-                      ->orWhere('email',        'like', $term)
-                      ->orWhere('phone_number', 'like', $term)
-                      ->orWhere('country',      'like', $term)
-                      ->orWhere('city',         'like', $term);
-                });
-            })
-            ->orderBy($data['order_by'] ?? 'created_at', $data['order_direction'] ?? 'asc')
-            ->paginate(
-                perPage: $data['per_page'] ?? 15,
-                page:    $data['page']     ?? null,
-            );
+            if (isset($data['sleep'])) {
+                $sleep = (int)$data['sleep'];
+                $sleep = $sleep / 1000;
+                sleep($sleep);
+            }
 
-        $model = [
-            'status'  => 200,
-            'message' => count($users) > 0 ? 'Registros encontrados.' : 'Nenhum registro encontrado.',
-            'data'    => $users,
-        ];
+            if (isset($data['simulate_throw']) && $data['simulate_throw']) {
+                throw new HttpClientException('Erro interno do servidor. Tente novamente mais tarde.');
+            }
 
-        return response()->json($model);
+            $users = User::query()
+                ->when(isset($data['q']), function ($query) use ($data) {
+                    $term = '%' . $data['q'] . '%';
+                    $query->where(function ($q) use ($term) {
+                        $q->where('first_name', 'like', $term)
+                            ->orWhere('last_name', 'like', $term)
+                            ->orWhere('username', 'like', $term)
+                            ->orWhere('email', 'like', $term)
+                            ->orWhere('phone_number', 'like', $term)
+                            ->orWhere('country', 'like', $term)
+                            ->orWhere('city', 'like', $term);
+                    });
+                })
+                ->orderBy($data['order_by'] ?? 'id', $data['order_direction'] ?? 'asc')
+                ->paginate(
+                    perPage: $data['per_page'] ?? 15,
+                    page: $data['page'] ?? null,
+                );
+
+            $model = [
+                'status'  => 200,
+                'message' => count($users) > 0 ? 'Registros encontrados.' : 'Nenhum registro encontrado.',
+                'data'    => $users,
+            ];
+
+            return response()->json($model);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

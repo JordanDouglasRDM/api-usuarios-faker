@@ -24,7 +24,13 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        $firstName = fake()->firstName();
+        $gender = fake()->randomElement(['male', 'female', 'male', 'female','male', 'female', 'male', 'female', 'other']);
+        $genderToName = match ($gender) {
+            'male' => 'male',
+            'female' => 'female',
+            'other' => null,
+        };
+        $firstName = fake()->firstName($genderToName);
         $lastName = fake()->lastName();
         $safeEmail = fake()->unique()->safeEmail();
         $exploded = explode('@', $safeEmail);
@@ -37,7 +43,7 @@ class UserFactory extends Factory
             'phone_number'    => fake()->phoneNumber(),
             'profile_picture' => fake()->randomElement($this->getImages()),
             'birthday_date'   => fake()->date('Y-m-d', '-18 years'),
-            'gender'          => fake()->randomElement(['Male', 'Female', 'Other']),
+            'gender'          => ucfirst($gender),
             'country'         => fake()->country(),
             'city'            => fake()->city(),
             'email'           => $safeEmail,
@@ -48,8 +54,18 @@ class UserFactory extends Factory
     public function configure(): static
     {
         return $this->afterCreating(function (User $user) {
+            $domain = fake()->randomElement([
+                'gmail.com',
+                'hotmail.com',
+                'yahoo.com',
+                'outlook.com',
+                'live.com',
+                'icloud.com'
+            ]);
+            $username = Str::slug($user->first_name . ' ' . $user->last_name . $user->id);
             $user->update([
-                'username' => Str::slug($user->first_name . ' ' . $user->last_name . $user->id),
+                'username' => $username,
+                'email'    => "$username@$domain",
             ]);
         });
     }
@@ -89,6 +105,7 @@ class UserFactory extends Factory
             'https://fastly.picsum.photos/id/921/640/480.jpg?hmac=T6PsxILwlNvbErn8em4oe85n7zvPYc_udkWAuZbDNoM',
             'https://fastly.picsum.photos/id/2/640/480.jpg?hmac=DRKBBndo8Tfkppn4AbfwllAGf-Tr0io_l-IrBeGVBKM',
             'https://fastly.picsum.photos/id/476/640/480.jpg?hmac=AajcUEOGGomrT2XRmuoC5qo8QYHGB6Ur2CvYSXKTkOg',
+
             'https://fastly.picsum.photos/id/56/640/480.jpg?hmac=iZranOmRbg7rTM-eUzsK7HjOxCGJyCq6PBlwWoIOTdc',
             'https://fastly.picsum.photos/id/1078/640/480.jpg?hmac=AWyYpZM1TMIBU4GkNVU00YQDixss_2ltK0KeFE5WirE',
             'https://fastly.picsum.photos/id/265/640/480.jpg?hmac=fvpvh3w5L5DtbaW-MCPtfc2L22QaTgEY0WA5Ail0oqE',

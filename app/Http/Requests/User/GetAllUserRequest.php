@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\User;
 
+use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -24,9 +25,12 @@ class GetAllUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $fillables = implode(',', (new User())->getFillable());
         return [
             'q'               => 'sometimes|string|min:1|max:100',
-            'order_by'        => 'sometimes|string|in:first_name,last_name,username,email,country,city,created_at',
+            'sleep'           => 'sometimes|integer|min:100|max:5000',
+            'simulate_throw'  => 'sometimes|bool',
+            'order_by'        => "sometimes|string|in:$fillables",
             'order_direction' => 'sometimes|string|in:asc,desc',
             'per_page'        => 'sometimes|integer|min:1|max:500',
             'page'            => 'sometimes|integer|min:1',
